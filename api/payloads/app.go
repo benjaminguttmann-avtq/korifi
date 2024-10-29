@@ -204,3 +204,11 @@ func (a *AppPatch) ToMessage(appGUID, spaceGUID string) repositories.PatchAppMes
 
 	return msg
 }
+
+type AppListDroplets struct{}
+
+func (a *AppListDroplets) ToMessage(appGUIDs []string) repositories.ListDropletsMessage {
+	return repositories.ListDropletsMessage{
+		AppGUIDs: appGUIDs,
+	}
+}
