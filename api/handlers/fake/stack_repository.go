@@ -10,11 +10,12 @@ import (
 )
 
 type StackRepository struct {
-	ListStacksStub        func(context.Context, authorization.Info) ([]repositories.StackRecord, error)
+	ListStacksStub        func(context.Context, authorization.Info, repositories.ListStacksMessage) ([]repositories.StackRecord, error)
 	listStacksMutex       sync.RWMutex
 	listStacksArgsForCall []struct {
 		arg1 context.Context
 		arg2 authorization.Info
+		arg3 repositories.ListStacksMessage
 	}
 	listStacksReturns struct {
 		result1 []repositories.StackRecord
@@ -28,19 +29,20 @@ type StackRepository struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *StackRepository) ListStacks(arg1 context.Context, arg2 authorization.Info) ([]repositories.StackRecord, error) {
+func (fake *StackRepository) ListStacks(arg1 context.Context, arg2 authorization.Info, arg3 repositories.ListStacksMessage) ([]repositories.StackRecord, error) {
 	fake.listStacksMutex.Lock()
 	ret, specificReturn := fake.listStacksReturnsOnCall[len(fake.listStacksArgsForCall)]
 	fake.listStacksArgsForCall = append(fake.listStacksArgsForCall, struct {
 		arg1 context.Context
 		arg2 authorization.Info
-	}{arg1, arg2})
+		arg3 repositories.ListStacksMessage
+	}{arg1, arg2, arg3})
 	stub := fake.ListStacksStub
 	fakeReturns := fake.listStacksReturns
-	fake.recordInvocation("ListStacks", []interface{}{arg1, arg2})
+	fake.recordInvocation("ListStacks", []interface{}{arg1, arg2, arg3})
 	fake.listStacksMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -54,17 +56,17 @@ func (fake *StackRepository) ListStacksCallCount() int {
 	return len(fake.listStacksArgsForCall)
 }
 
-func (fake *StackRepository) ListStacksCalls(stub func(context.Context, authorization.Info) ([]repositories.StackRecord, error)) {
+func (fake *StackRepository) ListStacksCalls(stub func(context.Context, authorization.Info, repositories.ListStacksMessage) ([]repositories.StackRecord, error)) {
 	fake.listStacksMutex.Lock()
 	defer fake.listStacksMutex.Unlock()
 	fake.ListStacksStub = stub
 }
 
-func (fake *StackRepository) ListStacksArgsForCall(i int) (context.Context, authorization.Info) {
+func (fake *StackRepository) ListStacksArgsForCall(i int) (context.Context, authorization.Info, repositories.ListStacksMessage) {
 	fake.listStacksMutex.RLock()
 	defer fake.listStacksMutex.RUnlock()
 	argsForCall := fake.listStacksArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *StackRepository) ListStacksReturns(result1 []repositories.StackRecord, result2 error) {

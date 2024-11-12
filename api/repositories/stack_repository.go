@@ -45,7 +45,13 @@ func NewStackRepository(
 	}
 }
 
-func (r *StackRepository) ListStacks(ctx context.Context, authInfo authorization.Info) ([]StackRecord, error) {
+type ListStacksMessage struct {
+	Names         []string
+	LabelSelector string
+	OrderBy       string
+}
+
+func (r *StackRepository) ListStacks(ctx context.Context, authInfo authorization.Info, message ListStacksMessage) ([]StackRecord, error) {
 	var builderInfo korifiv1alpha1.BuilderInfo
 
 	userClient, err := r.userClientFactory.BuildClient(authInfo)

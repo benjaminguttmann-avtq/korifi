@@ -50,7 +50,7 @@ var _ = Describe("Stack", func() {
 
 		It("returns the stacks for the default builder", func() {
 			Expect(stackRepo.ListStacksCallCount()).To(Equal(1))
-			_, actualAuthInfo := stackRepo.ListStacksArgsForCall(0)
+			_, actualAuthInfo, _ := stackRepo.ListStacksArgsForCall(0)
 			Expect(actualAuthInfo).To(Equal(authInfo))
 
 			Expect(rr).To(HaveHTTPStatus(http.StatusOK))
