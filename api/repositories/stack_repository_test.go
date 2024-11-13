@@ -24,7 +24,7 @@ var _ = Describe("StackRepository", func() {
 		}
 
 		stackRepo = NewStackRepository(
-			builderName,
+			builderNames,
 			userClientFactory,
 			rootNamespace,
 			sorter,
@@ -41,15 +41,10 @@ var _ = Describe("StackRepository", func() {
 			var stacks []StackRecord
 
 			BeforeEach(func() {
-				createBuilderInfoWithCleanup(ctx, builderName, "io.buildpack.stacks.jammy", []buildpackInfo{
+				createBuilderInfoWithCleanup(ctx, builderNames[0], "io.buildpack.stacks.jammy", []buildpackInfo{
 					{name: "paketo-stacks/stack-1-1", version: "1.1"},
 					{name: "paketo-stacks/stack-1-2", version: "1.2"},
 				})
-				createBuilderInfoWithCleanup(ctx, builderName2, "io.buildpack.stacks.noble", []buildpackInfo{
-					{name: "paketo-stacks/stack-1-1", version: "1.1"},
-					{name: "paketo-stacks/stack-1-2", version: "1.2"},
-				})
-
 				var err error
 				stacks, err = stackRepo.ListStacks(context.Background(), authInfo, message)
 				Expect(err).NotTo(HaveOccurred())

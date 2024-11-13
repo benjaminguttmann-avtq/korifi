@@ -45,7 +45,7 @@ var _ = Describe("BuildpackRepository", func() {
 			var buildpacks []BuildpackRecord
 
 			BeforeEach(func() {
-				createBuilderInfoWithCleanup(ctx, builderNames, "io.buildpacks.stacks.bionic", []buildpackInfo{
+				createBuilderInfoWithCleanup(ctx, builderNames[0], "io.buildpacks.stacks.bionic", []buildpackInfo{
 					{name: "paketo-buildpacks/buildpack-1-1", version: "1.1"},
 					{name: "paketo-buildpacks/buildpack-2-1", version: "2.1"},
 					{name: "paketo-buildpacks/buildpack-3-1", version: "3.1"},
@@ -100,7 +100,7 @@ var _ = Describe("BuildpackRepository", func() {
 		When("no build reconcilers exist", func() {
 			It("errors", func() {
 				_, err := buildpackRepo.ListBuildpacks(context.Background(), authInfo, message)
-				Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("BuilderInfo %q not found in namespace %q", builderName, rootNamespace))))
+				Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("BuilderInfo %q not found in namespace %q", builderNames[0], rootNamespace))))
 			})
 		})
 
@@ -116,7 +116,7 @@ var _ = Describe("BuildpackRepository", func() {
 
 			It("errors", func() {
 				_, err := buildpackRepo.ListBuildpacks(context.Background(), authInfo, message)
-				Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("BuilderInfo %q not found in namespace %q", builderName, rootNamespace))))
+				Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("BuilderInfo %q not found in namespace %q", builderNames[0], rootNamespace))))
 			})
 		})
 
@@ -124,7 +124,7 @@ var _ = Describe("BuildpackRepository", func() {
 			var builderInfo *korifiv1alpha1.BuilderInfo
 
 			BeforeEach(func() {
-				builderInfo = createBuilderInfoWithCleanup(ctx, builderName, "io.buildpacks.stacks.bionic", []buildpackInfo{
+				builderInfo = createBuilderInfoWithCleanup(ctx, builderNames[0], "io.buildpacks.stacks.bionic", []buildpackInfo{
 					{name: "paketo-buildpacks/buildpack-1-1", version: "1.1"},
 					{name: "paketo-buildpacks/buildpack-2-1", version: "2.1"},
 					{name: "paketo-buildpacks/buildpack-3-1", version: "3.1"},
@@ -144,7 +144,7 @@ var _ = Describe("BuildpackRepository", func() {
 
 				It("returns an error with the ready condition message", func() {
 					_, err := buildpackRepo.ListBuildpacks(context.Background(), authInfo, message)
-					Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("BuilderInfo %q not ready: this is a test", builderName))))
+					Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("BuilderInfo %q not ready: this is a test", builderNames[0]))))
 				})
 			})
 
@@ -161,7 +161,7 @@ var _ = Describe("BuildpackRepository", func() {
 
 				It("returns an error with a generic message", func() {
 					_, err := buildpackRepo.ListBuildpacks(context.Background(), authInfo, message)
-					Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("BuilderInfo %q not ready: resource not reconciled", builderName))))
+					Expect(err).To(MatchError(ContainSubstring(fmt.Sprintf("BuilderInfo %q not ready: resource not reconciled", builderNames[0]))))
 				})
 			})
 		})
@@ -173,7 +173,8 @@ type buildpackInfo struct {
 	version string
 }
 
-func createBuilderInfoWithCleanup(ctx context.Context, name, stacks []string, buildpacks []buildpackInfo) *korifiv1alpha1.BuilderInfo {
+func createBuilderInfoWithCleanup(ctx context.Context, name, stack string, buildpacks []buildpackInfo) *korifiv1alpha1.BuilderInfo {
+	// func createBuilderInfoWithCleanup(ctx context.Context, name, stacks []string, buildpacks []buildpackInfo) *korifiv1alpha1.BuilderInfo {
 	builderInfo := &korifiv1alpha1.BuilderInfo{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -188,12 +189,15 @@ func createBuilderInfoWithCleanup(ctx context.Context, name, stacks []string, bu
 	creationTimestamp := metav1.Time{Time: time.Now().Add(-24 * time.Hour)}
 	updatedTimestamp := metav1.Time{Time: time.Now().Add(-30 * time.Second)}
 
-	for _, s := range stacks {
-		builderInfo.Status.Stacks = append(builderInfo.Status.Stacks, korifiv1alpha1.BuilderInfoStatusStack{
-			Name:              s,
+	//	for _, s := range stacks {
+	//		builderInfo.Status.Stacks = append(builderInfo.Status.Stacks, korifiv1alpha1.BuilderInfoStatusStack{
+	builderInfo.Status.Stacks = []korifiv1alpha1.BuilderInfoStatusStack{
+		{
+			Name:              stack,
 			CreationTimestamp: metav1.Time{Time: time.Now()},
 			UpdatedTimestamp:  metav1.Time{Time: time.Now()},
-		})
+			//		})
+		},
 	}
 	for _, b := range buildpacks {
 		builderInfo.Status.Buildpacks = append(builderInfo.Status.Buildpacks, korifiv1alpha1.BuilderInfoStatusBuildpack{

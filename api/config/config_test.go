@@ -78,7 +78,7 @@ var _ = Describe("Config", func() {
 		Expect(cfg.ExternalFQDN).To(Equal("api.foo"))
 		Expect(cfg.ServerURL).To(Equal("https://api.foo"))
 		Expect(cfg.RootNamespace).To(Equal("root-ns"))
-		Expect(cfg.BuilderNames[0]).To(Equal("my-builder"))
+		Expect(cfg.BuilderNames).To(ConsistOf("my-builder"))
 		Expect(cfg.ContainerRepositoryPrefix).To(Equal("container.registry/my-prefix"))
 		Expect(cfg.PackageRegistrySecretNames).To(ConsistOf("package-registry-secret"))
 		Expect(cfg.DefaultDomainName).To(Equal("default.domain"))
@@ -179,11 +179,11 @@ var _ = Describe("Config", func() {
 
 	When("the builder is not specified", func() {
 		BeforeEach(func() {
-			delete(configMap, "builderName")
+			delete(configMap, "builderNames")
 		})
 
 		It("returns an error", func() {
-			Expect(loadErr).To(MatchError("BuilderName must have a value"))
+			Expect(loadErr).To(MatchError("BuilderNames must have a value"))
 		})
 	})
 
