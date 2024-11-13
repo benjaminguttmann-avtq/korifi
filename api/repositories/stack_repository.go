@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"code.cloudfoundry.org/korifi/api/authorization"
 	apierrors "code.cloudfoundry.org/korifi/api/errors"
+	"code.cloudfoundry.org/korifi/api/repositories/compare"
 
 	korifiv1alpha1 "code.cloudfoundry.org/korifi/controllers/api/v1alpha1"
+	"code.cloudfoundry.org/korifi/tools"
 	"github.com/BooleanCat/go-functional/v2/it"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/types"
@@ -23,6 +26,46 @@ type StackRepository struct {
 	builderName       string
 	userClientFactory authorization.UserK8sClientFactory
 	rootNamespace     string
+	sorter            StackSorter
+}
+
+//counterfeiter:generate -o fake -fake-name StackSorter . StackSorter
+type StackSorter interface {
+	Sort(records []StackRecord, order string) []StackRecord
+}
+
+type stackSorter struct {
+	sorter *compare.Sorter[StackRecord]
+}
+
+func NewStackSorter() *stackSorter {
+	return &stackSorter{
+		sorter: compare.NewSorter(StackComparator),
+	}
+}
+
+func (s *stackSorter) Sort(records []StackRecord, order string) []StackRecord {
+	return s.sorter.Sort(records, order)
+}
+
+func StackComparator(fieldName string) func(StackRecord, StackRecord) int {
+	return func(s1, s2 StackRecord) int {
+		switch fieldName {
+		case "", "name":
+			return strings.Compare(s1.Name, s2.Name)
+		case "-name":
+			return strings.Compare(s2.Name, s1.Name)
+		case "created_at":
+			return tools.CompareTimePtr(&s1.CreatedAt, &s2.CreatedAt)
+		case "-created_at":
+			return tools.CompareTimePtr(&s2.CreatedAt, &s1.CreatedAt)
+		case "updated_at":
+			return tools.CompareTimePtr(s1.UpdatedAt, s2.UpdatedAt)
+		case "-updated_at":
+			return tools.CompareTimePtr(s2.UpdatedAt, s1.UpdatedAt)
+		}
+		return 0
+	}
 }
 
 type StackRecord struct {
@@ -37,11 +80,13 @@ func NewStackRepository(
 	builderName string,
 	userClientFactory authorization.UserK8sClientFactory,
 	rootNamespace string,
+	sorter StackSorter,
 ) *StackRepository {
 	return &StackRepository{
 		builderName:       builderName,
 		userClientFactory: userClientFactory,
 		rootNamespace:     rootNamespace,
+		sorter:            sorter,
 	}
 }
 
@@ -75,7 +120,7 @@ func (r *StackRepository) ListStacks(ctx context.Context, authInfo authorization
 		return nil, apierrors.NewResourceNotReadyError(fmt.Errorf("BuilderInfo %q not ready", r.builderName))
 	}
 
-	return builderInfoToStackRecords(builderInfo), nil
+	return r.sorter.Sort(builderInfoToStackRecords(builderInfo), message.OrderBy), nil
 }
 
 func builderInfoToStackRecords(info korifiv1alpha1.BuilderInfo) []StackRecord {

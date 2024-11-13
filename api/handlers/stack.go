@@ -32,10 +32,12 @@ type Stack struct {
 func NewStack(
 	serverURL url.URL,
 	stackRepo StackRepository,
+	requestValidator RequestValidator,
 ) *Stack {
 	return &Stack{
-		serverURL: serverURL,
-		stackRepo: stackRepo,
+		serverURL:        serverURL,
+		stackRepo:        stackRepo,
+		requestValidator: requestValidator,
 	}
 }
 

@@ -54,6 +54,7 @@ var (
 	authInfo              authorization.Info
 	rootNamespace         string
 	builderName           string
+	builderName2          string
 	runnerName            string
 	idProvider            authorization.IdentityProvider
 	nsPerms               *authorization.NamespacePermissions
@@ -116,6 +117,7 @@ var _ = BeforeEach(func() {
 	authInfo.CertData = testhelpers.JoinCertAndKey(cert, key)
 	rootNamespace = prefixedGUID("root-ns")
 	builderName = "kpack-image-builder"
+	builderName2 = "kpack-image-builder2"
 	runnerName = "statefulset-runner"
 	tokenInspector := authorization.NewTokenReviewer(k8sClient)
 	certInspector := authorization.NewCertInspector(testEnv.Config)

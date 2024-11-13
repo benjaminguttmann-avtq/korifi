@@ -9,7 +9,7 @@ import (
 	"code.cloudfoundry.org/korifi/api/repositories"
 )
 
-type StackRepository struct {
+type StackRepository struct { //nolint:dupl
 	ListStacksStub        func(context.Context, authorization.Info, repositories.ListStacksMessage) ([]repositories.StackRecord, error)
 	listStacksMutex       sync.RWMutex
 	listStacksArgsForCall []struct {

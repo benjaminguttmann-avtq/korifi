@@ -212,6 +212,7 @@ func main() {
 	stackRepo := repositories.NewStackRepository(cfg.BuilderName,
 		userClientFactory,
 		cfg.RootNamespace,
+		repositories.NewStackSorter(),
 	)
 	buildpackRepo := repositories.NewBuildpackRepository(cfg.BuilderName,
 		userClientFactory,
@@ -365,6 +366,7 @@ func main() {
 		handlers.NewStack(
 			*serverURL,
 			stackRepo,
+			requestValidator,
 		),
 		handlers.NewJob(
 			*serverURL,
