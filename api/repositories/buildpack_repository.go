@@ -22,7 +22,7 @@ const (
 )
 
 type BuildpackRepository struct {
-	builderName       string
+	builderNames      []string
 	userClientFactory authorization.UserK8sClientFactory
 	rootNamespace     string
 	sorter            BuildpackSorter
@@ -81,13 +81,13 @@ type ListBuildpacksMessage struct {
 }
 
 func NewBuildpackRepository(
-	builderName string,
+	builderNames []string,
 	userClientFactory authorization.UserK8sClientFactory,
 	rootNamespace string,
 	sorter BuildpackSorter,
 ) *BuildpackRepository {
 	return &BuildpackRepository{
-		builderName:       builderName,
+		builderNames:      builderNames,
 		userClientFactory: userClientFactory,
 		rootNamespace:     rootNamespace,
 		sorter:            sorter,
@@ -102,37 +102,38 @@ func (r *BuildpackRepository) ListBuildpacks(ctx context.Context, authInfo autho
 		return nil, fmt.Errorf("failed to build user client: %w", err)
 	}
 
-	err = userClient.Get(
-		ctx,
-		types.NamespacedName{
-			Namespace: r.rootNamespace,
-			Name:      r.builderName,
-		},
-		&builderInfo,
-	)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			return nil, apierrors.NewResourceNotReadyError(fmt.Errorf("BuilderInfo %q not found in namespace %q", r.builderName, r.rootNamespace))
+	for _, b := range r.builderNames {
+		err = userClient.Get(
+			ctx,
+			types.NamespacedName{
+				Namespace: r.rootNamespace,
+				Name:      b,
+			},
+			&builderInfo,
+		)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				return nil, apierrors.NewResourceNotReadyError(fmt.Errorf("BuilderInfo %q not found in namespace %q", b, r.rootNamespace))
+			}
+
+			return nil, apierrors.FromK8sError(err, BuildpackResourceType)
 		}
 
-		return nil, apierrors.FromK8sError(err, BuildpackResourceType)
+		if !meta.IsStatusConditionTrue(builderInfo.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
+			var conditionNotReadyMessage string
+
+			readyCondition := meta.FindStatusCondition(builderInfo.Status.Conditions, korifiv1alpha1.StatusConditionReady)
+			if readyCondition != nil {
+				conditionNotReadyMessage = readyCondition.Message
+			}
+
+			if conditionNotReadyMessage == "" {
+				conditionNotReadyMessage = "resource not reconciled"
+			}
+
+			return nil, apierrors.NewResourceNotReadyError(fmt.Errorf("BuilderInfo %q not ready: %s", b, conditionNotReadyMessage))
+		}
 	}
-
-	if !meta.IsStatusConditionTrue(builderInfo.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
-		var conditionNotReadyMessage string
-
-		readyCondition := meta.FindStatusCondition(builderInfo.Status.Conditions, korifiv1alpha1.StatusConditionReady)
-		if readyCondition != nil {
-			conditionNotReadyMessage = readyCondition.Message
-		}
-
-		if conditionNotReadyMessage == "" {
-			conditionNotReadyMessage = "resource not reconciled"
-		}
-
-		return nil, apierrors.NewResourceNotReadyError(fmt.Errorf("BuilderInfo %q not ready: %s", r.builderName, conditionNotReadyMessage))
-	}
-
 	return r.sorter.Sort(builderInfoToBuildpackRecords(builderInfo), message.OrderBy), nil
 }
 

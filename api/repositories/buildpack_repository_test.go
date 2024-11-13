@@ -31,7 +31,7 @@ var _ = Describe("BuildpackRepository", func() {
 			return records
 		}
 
-		buildpackRepo = NewBuildpackRepository(builderName, userClientFactory, rootNamespace, sorter)
+		buildpackRepo = NewBuildpackRepository(builderNames, userClientFactory, rootNamespace, sorter)
 	})
 
 	Describe("ListBuildpacks", func() {
@@ -45,7 +45,7 @@ var _ = Describe("BuildpackRepository", func() {
 			var buildpacks []BuildpackRecord
 
 			BeforeEach(func() {
-				createBuilderInfoWithCleanup(ctx, builderName, "io.buildpacks.stacks.bionic", []buildpackInfo{
+				createBuilderInfoWithCleanup(ctx, builderNames, "io.buildpacks.stacks.bionic", []buildpackInfo{
 					{name: "paketo-buildpacks/buildpack-1-1", version: "1.1"},
 					{name: "paketo-buildpacks/buildpack-2-1", version: "2.1"},
 					{name: "paketo-buildpacks/buildpack-3-1", version: "3.1"},
@@ -173,7 +173,7 @@ type buildpackInfo struct {
 	version string
 }
 
-func createBuilderInfoWithCleanup(ctx context.Context, name, stack string, buildpacks []buildpackInfo) *korifiv1alpha1.BuilderInfo {
+func createBuilderInfoWithCleanup(ctx context.Context, name, stacks []string, buildpacks []buildpackInfo) *korifiv1alpha1.BuilderInfo {
 	builderInfo := &korifiv1alpha1.BuilderInfo{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -188,12 +188,12 @@ func createBuilderInfoWithCleanup(ctx context.Context, name, stack string, build
 	creationTimestamp := metav1.Time{Time: time.Now().Add(-24 * time.Hour)}
 	updatedTimestamp := metav1.Time{Time: time.Now().Add(-30 * time.Second)}
 
-	builderInfo.Status.Stacks = []korifiv1alpha1.BuilderInfoStatusStack{
-		{
-			Name:              stack,
+	for _, s := range stacks {
+		builderInfo.Status.Stacks = append(builderInfo.Status.Stacks, korifiv1alpha1.BuilderInfoStatusStack{
+			Name:              s,
 			CreationTimestamp: metav1.Time{Time: time.Now()},
 			UpdatedTimestamp:  metav1.Time{Time: time.Now()},
-		},
+		})
 	}
 	for _, b := range buildpacks {
 		builderInfo.Status.Buildpacks = append(builderInfo.Status.Buildpacks, korifiv1alpha1.BuilderInfoStatusBuildpack{

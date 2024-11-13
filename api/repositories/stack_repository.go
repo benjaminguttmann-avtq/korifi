@@ -23,13 +23,12 @@ const (
 )
 
 type StackRepository struct {
-	builderName       string
+	builderNames      []string
 	userClientFactory authorization.UserK8sClientFactory
 	rootNamespace     string
 	sorter            StackSorter
 }
 
-//counterfeiter:generate -o fake -fake-name StackSorter . StackSorter
 type StackSorter interface {
 	Sort(records []StackRecord, order string) []StackRecord
 }
@@ -77,13 +76,13 @@ type StackRecord struct {
 }
 
 func NewStackRepository(
-	builderName string,
+	builderNames []string,
 	userClientFactory authorization.UserK8sClientFactory,
 	rootNamespace string,
 	sorter StackSorter,
 ) *StackRepository {
 	return &StackRepository{
-		builderName:       builderName,
+		builderNames:      builderNames,
 		userClientFactory: userClientFactory,
 		rootNamespace:     rootNamespace,
 		sorter:            sorter,
@@ -104,22 +103,23 @@ func (r *StackRepository) ListStacks(ctx context.Context, authInfo authorization
 		return nil, fmt.Errorf("failed to build user client: %w", err)
 	}
 
-	err = userClient.Get(
-		ctx,
-		types.NamespacedName{
-			Namespace: r.rootNamespace,
-			Name:      r.builderName,
-		},
-		&builderInfo,
-	)
-	if err != nil {
-		return nil, apierrors.FromK8sError(err, StackResourceType)
-	}
+	for _, b := range r.builderNames {
+		err = userClient.Get(
+			ctx,
+			types.NamespacedName{
+				Namespace: r.rootNamespace,
+				Name:      b,
+			},
+			&builderInfo,
+		)
+		if err != nil {
+			return nil, apierrors.FromK8sError(err, StackResourceType)
+		}
 
-	if !meta.IsStatusConditionTrue(builderInfo.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
-		return nil, apierrors.NewResourceNotReadyError(fmt.Errorf("BuilderInfo %q not ready", r.builderName))
+		if !meta.IsStatusConditionTrue(builderInfo.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
+			return nil, apierrors.NewResourceNotReadyError(fmt.Errorf("BuilderInfo %q not ready", b))
+		}
 	}
-
 	return r.sorter.Sort(builderInfoToStackRecords(builderInfo), message.OrderBy), nil
 }
 

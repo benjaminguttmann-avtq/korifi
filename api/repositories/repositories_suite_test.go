@@ -53,8 +53,7 @@ var (
 	userName              string
 	authInfo              authorization.Info
 	rootNamespace         string
-	builderName           string
-	builderName2          string
+	builderNames          []string
 	runnerName            string
 	idProvider            authorization.IdentityProvider
 	nsPerms               *authorization.NamespacePermissions

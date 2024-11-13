@@ -36,7 +36,7 @@ var _ = Describe("Config", func() {
 			"externalFQDN": "api.foo",
 
 			"rootNamespace":                            "root-ns",
-			"builderName":                              "my-builder",
+			"builderNames":                             []string{"my-builder"},
 			"containerRepositoryPrefix":                "container.registry/my-prefix",
 			"packageRegistrySecretNames":               []string{"package-registry-secret"},
 			"defaultDomainName":                        "default.domain",
@@ -78,7 +78,7 @@ var _ = Describe("Config", func() {
 		Expect(cfg.ExternalFQDN).To(Equal("api.foo"))
 		Expect(cfg.ServerURL).To(Equal("https://api.foo"))
 		Expect(cfg.RootNamespace).To(Equal("root-ns"))
-		Expect(cfg.BuilderName).To(Equal("my-builder"))
+		Expect(cfg.BuilderNames[0]).To(Equal("my-builder"))
 		Expect(cfg.ContainerRepositoryPrefix).To(Equal("container.registry/my-prefix"))
 		Expect(cfg.PackageRegistrySecretNames).To(ConsistOf("package-registry-secret"))
 		Expect(cfg.DefaultDomainName).To(Equal("default.domain"))
