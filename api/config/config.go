@@ -33,7 +33,7 @@ type (
 		InfoConfig InfoConfig `yaml:"infoConfig"`
 
 		RootNamespace                            string                 `yaml:"rootNamespace"`
-		BuilderName                              string                 `yaml:"builderName"`
+		BuilderNames                             []string               `yaml:"builderNames"`
 		RunnerName                               string                 `yaml:"runnerName"`
 		ContainerRepositoryPrefix                string                 `yaml:"containerRepositoryPrefix"`
 		ContainerRegistryType                    string                 `yaml:"containerRegistryType"`
@@ -124,8 +124,8 @@ func (c *APIConfig) validate() error {
 		}
 	}
 
-	if c.BuilderName == "" {
-		return errors.New("BuilderName must have a value")
+	if len(c.BuilderNames) > 0 {
+		return errors.New("BuilderNames must have a value")
 	}
 
 	return nil

@@ -209,11 +209,11 @@ func main() {
 		nsPermissions,
 		conditions.NewConditionAwaiter[*korifiv1alpha1.CFServiceBinding, korifiv1alpha1.CFServiceBinding, korifiv1alpha1.CFServiceBindingList](conditionTimeout),
 	)
-	stackRepo := repositories.NewStackRepository(cfg.BuilderName,
+	stackRepo := repositories.NewStackRepository(cfg.BuilderNames,
 		userClientFactory,
 		cfg.RootNamespace,
 	)
-	buildpackRepo := repositories.NewBuildpackRepository(cfg.BuilderName,
+	buildpackRepo := repositories.NewBuildpackRepository(cfg.BuilderNames,
 		userClientFactory,
 		cfg.RootNamespace,
 		repositories.NewBuildpackSorter(),

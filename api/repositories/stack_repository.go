@@ -20,7 +20,7 @@ const (
 )
 
 type StackRepository struct {
-	builderName       string
+	builderNames      []string
 	userClientFactory authorization.UserK8sClientFactory
 	rootNamespace     string
 }
@@ -34,12 +34,12 @@ type StackRecord struct {
 }
 
 func NewStackRepository(
-	builderName string,
+	builderNames []string,
 	userClientFactory authorization.UserK8sClientFactory,
 	rootNamespace string,
 ) *StackRepository {
 	return &StackRepository{
-		builderName:       builderName,
+		builderNames:      builderNames,
 		userClientFactory: userClientFactory,
 		rootNamespace:     rootNamespace,
 	}
@@ -57,7 +57,7 @@ func (r *StackRepository) ListStacks(ctx context.Context, authInfo authorization
 		ctx,
 		types.NamespacedName{
 			Namespace: r.rootNamespace,
-			Name:      r.builderName,
+			Name:      r.builderNames[0],
 		},
 		&builderInfo,
 	)
@@ -66,7 +66,7 @@ func (r *StackRepository) ListStacks(ctx context.Context, authInfo authorization
 	}
 
 	if !meta.IsStatusConditionTrue(builderInfo.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
-		return nil, apierrors.NewResourceNotReadyError(fmt.Errorf("BuilderInfo %q not ready", r.builderName))
+		return nil, apierrors.NewResourceNotReadyError(fmt.Errorf("BuilderInfo %q not ready", r.builderNames[0]))
 	}
 
 	return builderInfoToStackRecords(builderInfo), nil

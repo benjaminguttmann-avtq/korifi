@@ -22,7 +22,7 @@ const (
 )
 
 type BuildpackRepository struct {
-	builderName       string
+	builderNames      []string
 	userClientFactory authorization.UserK8sClientFactory
 	rootNamespace     string
 	sorter            BuildpackSorter
@@ -81,13 +81,13 @@ type ListBuildpacksMessage struct {
 }
 
 func NewBuildpackRepository(
-	builderName string,
+	builderNames []string,
 	userClientFactory authorization.UserK8sClientFactory,
 	rootNamespace string,
 	sorter BuildpackSorter,
 ) *BuildpackRepository {
 	return &BuildpackRepository{
-		builderName:       builderName,
+		builderNames:      builderNames,
 		userClientFactory: userClientFactory,
 		rootNamespace:     rootNamespace,
 		sorter:            sorter,
@@ -106,13 +106,13 @@ func (r *BuildpackRepository) ListBuildpacks(ctx context.Context, authInfo autho
 		ctx,
 		types.NamespacedName{
 			Namespace: r.rootNamespace,
-			Name:      r.builderName,
+			Name:      r.builderNames[0],
 		},
 		&builderInfo,
 	)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			return nil, apierrors.NewResourceNotReadyError(fmt.Errorf("BuilderInfo %q not found in namespace %q", r.builderName, r.rootNamespace))
+			return nil, apierrors.NewResourceNotReadyError(fmt.Errorf("BuilderInfo %q not found in namespace %q", r.builderNames[0], r.rootNamespace))
 		}
 
 		return nil, apierrors.FromK8sError(err, BuildpackResourceType)
@@ -130,7 +130,7 @@ func (r *BuildpackRepository) ListBuildpacks(ctx context.Context, authInfo autho
 			conditionNotReadyMessage = "resource not reconciled"
 		}
 
-		return nil, apierrors.NewResourceNotReadyError(fmt.Errorf("BuilderInfo %q not ready: %s", r.builderName, conditionNotReadyMessage))
+		return nil, apierrors.NewResourceNotReadyError(fmt.Errorf("BuilderInfo %q not ready: %s", r.builderNames[0], conditionNotReadyMessage))
 	}
 
 	return r.sorter.Sort(builderInfoToBuildpackRecords(builderInfo), message.OrderBy), nil
