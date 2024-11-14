@@ -124,7 +124,7 @@ func (c *APIConfig) validate() error {
 		}
 	}
 
-	if len(c.BuilderNames) > 0 {
+	if len(c.BuilderNames) < 0 {
 		return errors.New("BuilderNames must have a value")
 	}
 
