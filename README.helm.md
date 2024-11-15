@@ -99,6 +99,7 @@ Here are all the values that can be set for the chart:
   - `clusterStackBuildImage` (_String_): The image to use for building defined in the `ClusterStack`. Used when `clusterBuilderName` is blank.
   - `clusterStackID` (_String_): The ID of the `ClusterStack`. Used when `clusterBuilderName` is blank.
   - `clusterStackRunImage` (_String_): The image to use for running defined in the `ClusterStack`. Used when `clusterBuilderName` is blank.
+  - `defaultClusterBuilderName` (_String_): The name of the default `ClusterBuilder` Kpack should use. Leave blank to let `kpack-image-builder` create an example `ClusterBuilder`.
   - `include` (_Boolean_): Deploy the `kpack-image-builder` component.
   - `replicas` (_Integer_): Number of replicas.
   - `resources`: [`ResourceRequirements`](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#resourcerequirements-v1-core) for the API.

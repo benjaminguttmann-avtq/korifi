@@ -33,7 +33,8 @@ type ControllerConfig struct {
 	JobTTL string `yaml:"jobTTL"`
 
 	// kpack-image-builder
-	ClusterBuilderName        string     `yaml:"clusterBuilderName"`
+	ClusterBuilderNames       []string   `yaml:"clusterBuilderNames"`
+	DefaultClusterBuilderName string     `yaml:"defaultClusterBuilderName"`
 	BuilderServiceAccount     string     `yaml:"builderServiceAccount"`
 	BuilderReadinessTimeout   string     `yaml:"builderReadinessTimeout"`
 	ContainerRepositoryPrefix string     `yaml:"containerRepositoryPrefix"`

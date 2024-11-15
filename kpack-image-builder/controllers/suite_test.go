@@ -107,7 +107,7 @@ var _ = BeforeSuite(func() {
 
 	controllerConfig := &config.ControllerConfig{
 		CFRootNamespace:           PrefixedGUID("cf"),
-		ClusterBuilderName:        "cf-kpack-builder",
+		DefaultClusterBuilderName: "cf-kpack-builder",
 		ContainerRepositoryPrefix: "image/registry/tag",
 		BuilderServiceAccount:     "builder-service-account",
 		CFStagingResources: config.CFStagingResources{

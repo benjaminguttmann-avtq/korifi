@@ -369,7 +369,7 @@ func main() {
 				mgr.GetClient(),
 				mgr.GetScheme(),
 				controllersLog,
-				controllerConfig.ClusterBuilderName,
+				controllerConfig.DefaultClusterBuilderName,
 				controllerConfig.CFRootNamespace,
 			).SetupWithManager(mgr); err != nil {
 				setupLog.Error(err, "unable to create controller", "controller", "BuilderInfo")

@@ -376,7 +376,7 @@ func (r *BuildWorkloadReconciler) getBuilderReadyCondition(ctx context.Context, 
 
 func (r *BuildWorkloadReconciler) getDefaultClusterBuilder(ctx context.Context) (*buildv1alpha2.ClusterBuilder, error) {
 	var defaultBuilder buildv1alpha2.ClusterBuilder
-	err := r.k8sClient.Get(ctx, client.ObjectKey{Name: r.controllerConfig.ClusterBuilderName}, &defaultBuilder)
+	err := r.k8sClient.Get(ctx, client.ObjectKey{Name: r.controllerConfig.DefaultClusterBuilderName}, &defaultBuilder)
 	return &defaultBuilder, err
 }
 
@@ -698,7 +698,7 @@ func (r *BuildWorkloadReconciler) reconcileKpackImage(
 			Tag: kpackImageTag,
 			Builder: corev1.ObjectReference{
 				Kind:       clusterBuilderKind,
-				Name:       r.controllerConfig.ClusterBuilderName,
+				Name:       r.controllerConfig.DefaultClusterBuilderName,
 				APIVersion: clusterBuilderAPIVersion,
 			},
 			ServiceAccountName: r.controllerConfig.BuilderServiceAccount,
