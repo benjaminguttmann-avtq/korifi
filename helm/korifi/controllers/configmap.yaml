@@ -39,7 +39,10 @@ data:
     maxRetainedBuildsPerApp: {{ .Values.controllers.maxRetainedBuildsPerApp }}
     logLevel: {{ .Values.logLevel }}
     {{- if .Values.kpackImageBuilder.include }}
-    clusterBuilderName: {{ .Values.kpackImageBuilder.clusterBuilderName | default "cf-kpack-cluster-builder" }}
+    clusterBuilderNames: 
+    - "cf-kpack-cluster-builder"
+    - "cf-kpack-cluster-builder2"
+    defaultClusterBuilderName: {{ .Values.kpackImageBuilder.clusterBuilderName | default "cf-kpack-cluster-builder" }}
     builderReadinessTimeout: {{ required "builderReadinessTimeout is required" .Values.kpackImageBuilder.builderReadinessTimeout }}
     containerRepositoryPrefix: {{ .Values.containerRepositoryPrefix | quote }}
     builderServiceAccount: kpack-service-account

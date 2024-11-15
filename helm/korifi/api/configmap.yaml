@@ -23,7 +23,10 @@ data:
     {{- end }}
       supportAddress: {{ .Values.api.infoConfig.supportAddress }}
     rootNamespace: {{ .Values.rootNamespace }}
-    builderName: {{ .Values.reconcilers.build }}
+    builderNames: 
+    - "cf-kpack-cluster-builder2"
+    - "cf-kpack-cluster-builder"
+    defaultBuilderName: {{ .Values.reconcilers.build }}
     runnerName: {{ .Values.reconcilers.run }}
     defaultLifecycleConfig:
       type: {{ .Values.api.lifecycle.type }}

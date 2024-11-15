@@ -20,56 +20,64 @@ const (
 )
 
 type StackRepository struct {
-	builderName       string
-	userClientFactory authorization.UserK8sClientFactory
-	rootNamespace     string
+	builderNames       []string
+	defaultBuilderName string
+	userClientFactory  authorization.UserK8sClientFactory
+	rootNamespace      string
 }
 
 type StackRecord struct {
-	GUID        string
-	CreatedAt   time.Time
-	UpdatedAt   *time.Time
+	GUID      string
+	CreatedAt time.Time
+	UpdatedAt *time.Time
+	//	Default     bool
 	Name        string
 	Description string
 }
 
 func NewStackRepository(
-	builderName string,
+	builderNames []string,
+	defaultBuilderName string,
 	userClientFactory authorization.UserK8sClientFactory,
 	rootNamespace string,
 ) *StackRepository {
 	return &StackRepository{
-		builderName:       builderName,
-		userClientFactory: userClientFactory,
-		rootNamespace:     rootNamespace,
+		builderNames:       builderNames,
+		defaultBuilderName: defaultBuilderName,
+		userClientFactory:  userClientFactory,
+		rootNamespace:      rootNamespace,
 	}
 }
 
 func (r *StackRepository) ListStacks(ctx context.Context, authInfo authorization.Info) ([]StackRecord, error) {
-	var builderInfo korifiv1alpha1.BuilderInfo
+	stackList := make([]StackRecord, len(r.builderNames))
 
 	userClient, err := r.userClientFactory.BuildClient(authInfo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build user client: %w", err)
 	}
 
-	err = userClient.Get(
-		ctx,
-		types.NamespacedName{
-			Namespace: r.rootNamespace,
-			Name:      r.builderName,
-		},
-		&builderInfo,
-	)
-	if err != nil {
-		return nil, apierrors.FromK8sError(err, StackResourceType)
-	}
+	for _, builderName := range r.builderNames {
+		var builderInfo korifiv1alpha1.BuilderInfo
+		err = userClient.Get(
+			ctx,
+			types.NamespacedName{
+				Namespace: r.rootNamespace,
+				Name:      builderName,
+			},
+			&builderInfo,
+		)
+		if err != nil {
+			return nil, apierrors.FromK8sError(err, StackResourceType)
+		}
 
-	if !meta.IsStatusConditionTrue(builderInfo.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
-		return nil, apierrors.NewResourceNotReadyError(fmt.Errorf("BuilderInfo %q not ready", r.builderName))
-	}
+		if !meta.IsStatusConditionTrue(builderInfo.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
+			return nil, apierrors.NewResourceNotReadyError(fmt.Errorf("BuilderInfo %q not ready", builderName))
+		}
 
-	return builderInfoToStackRecords(builderInfo), nil
+		stackList = append(stackList, builderInfoToStackRecords(builderInfo)...)
+	}
+	return stackList, nil
 }
 
 func builderInfoToStackRecords(info korifiv1alpha1.BuilderInfo) []StackRecord {
