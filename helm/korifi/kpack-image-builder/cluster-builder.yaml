@@ -66,13 +66,13 @@ spec:
 apiVersion: kpack.io/v1alpha2
 kind: ClusterStack
 metadata:
-  name: cf-default-stack
+  name: custom-cluster-stack
 spec:
-  id: "io.buildpacks.stacks.jammy"
+  id: "io.buildpacks.stacks.noble"
   buildImage:
-    image: "paketobuildpacks/build-jammy-base"
+    image: "paketobuildpacks/build-noble-base"
   runImage:
-    image: "paketobuildpacks/run-jammy-base"
+    image: "paketobuildpacks/run-noble-base"
 ---
 apiVersion: kpack.io/v1alpha2
 kind: ClusterBuilder

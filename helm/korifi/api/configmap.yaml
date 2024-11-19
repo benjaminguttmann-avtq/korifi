@@ -24,8 +24,8 @@ data:
       supportAddress: {{ .Values.api.infoConfig.supportAddress }}
     rootNamespace: {{ .Values.rootNamespace }}
     builderNames: 
-    - "cf-kpack-cluster-builder2"
-    - "cf-kpack-cluster-builder"
+    - "kpack-image-builder"
+    - "kpack-image-builder2"
     defaultBuilderName: {{ .Values.reconcilers.build }}
     runnerName: {{ .Values.reconcilers.run }}
     defaultLifecycleConfig:
