@@ -43,7 +43,7 @@ func (h *Stack) list(r *http.Request) (*routing.Response, error) {
 
 	stacks, err := h.stackRepo.ListStacks(r.Context(), authInfo)
 	if err != nil {
-		return nil, apierrors.LogAndReturn(logger, err, "Failed to fetch buildpacks from Kubernetes")
+		return nil, apierrors.LogAndReturn(logger, err, "Failed to fetch stacks from Kubernetes")
 	}
 
 	return routing.NewResponse(http.StatusOK).WithBody(presenter.ForList(presenter.ForStack, stacks, h.serverURL, *r.URL)), nil
