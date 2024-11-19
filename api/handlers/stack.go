@@ -39,7 +39,7 @@ func NewStack(
 
 func (h *Stack) list(r *http.Request) (*routing.Response, error) {
 	authInfo, _ := authorization.InfoFromContext(r.Context())
-	logger := logr.FromContextOrDiscard(r.Context()).WithName("handlers.build.list")
+	logger := logr.FromContextOrDiscard(r.Context()).WithName("handlers.stack.list")
 
 	stacks, err := h.stackRepo.ListStacks(r.Context(), authInfo)
 	if err != nil {

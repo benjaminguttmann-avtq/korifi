@@ -33,13 +33,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-const (
-	BuilderInfoName = "kpack-image-builder"
-)
+//const (
+//	BuilderInfoName = "kpack-image-builder"
+//)
 
 func NewBuilderInfoReconciler(
 	c client.Client,
@@ -72,31 +71,32 @@ func (r *BuilderInfoReconciler) SetupWithManager(mgr ctrl.Manager) *builder.Buil
 		Watches(
 			new(buildv1alpha2.ClusterBuilder),
 			handler.EnqueueRequestsFromMapFunc(r.enqueueBuilderInfoRequests),
-		).
-		WithEventFilter(predicate.NewPredicateFuncs(r.filterBuilderInfos))
+		) //.
+	//	WithEventFilter(predicate.NewPredicateFuncs(r.filterBuilderInfos))
 }
 
 func (r *BuilderInfoReconciler) enqueueBuilderInfoRequests(ctx context.Context, o client.Object) []reconcile.Request {
 	var requests []reconcile.Request
-	if o.GetName() == r.clusterBuilderName {
-		requests = append(requests, reconcile.Request{
-			NamespacedName: types.NamespacedName{
-				Name:      BuilderInfoName,
-				Namespace: r.rootNamespaceName,
-			},
-		})
-	}
+	//	if o.GetName() == r.clusterBuilderName {
+	requests = append(requests, reconcile.Request{
+		NamespacedName: types.NamespacedName{
+			Name:      o.GetName(),
+			Namespace: r.rootNamespaceName,
+		},
+	})
+	//	}
 	return requests
 }
 
-func (r *BuilderInfoReconciler) filterBuilderInfos(object client.Object) bool {
-	builderInfo, ok := object.(*korifiv1alpha1.BuilderInfo)
-	if !ok {
-		return true
-	}
-
-	return builderInfo.Name == BuilderInfoName && builderInfo.Namespace == r.rootNamespaceName
-}
+//func (r *BuilderInfoReconciler) filterBuilderInfos(object client.Object) bool {
+//	builderInfo, ok := object.(*korifiv1alpha1.BuilderInfo)
+//	if !ok {
+//		return true
+//	}
+//
+//	// return builderInfo.Name == BuilderInfoName && builderInfo.Namespace == r.rootNamespaceName
+//	return builderInfo.Namespace == r.rootNamespaceName
+//}
 
 //+kubebuilder:rbac:groups=korifi.cloudfoundry.org,resources=builderinfos,verbs=get;list;watch;create;patch;delete
 //+kubebuilder:rbac:groups=korifi.cloudfoundry.org,resources=builderinfos/status,verbs=get;patch

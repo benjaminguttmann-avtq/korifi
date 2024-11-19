@@ -47,4 +47,9 @@ spec:
           kind: BuilderInfo
           metadata:
             name: kpack-image-builder
+          ---
+          apiVersion: korifi.cloudfoundry.org/v1alpha1
+          kind: BuilderInfo
+          metadata:
+            name: kpack-image-builder2
           EOF
