@@ -24,7 +24,7 @@ const (
 //counterfeiter:generate -o fake -fake-name CFBuildRepository . CFBuildRepository
 type CFBuildRepository interface {
 	GetBuild(context.Context, authorization.Info, string) (repositories.BuildRecord, error)
-	ListBuilds(context.Context, authorization.Info) ([]repositories.BuildRecord, error)
+	ListBuilds(context.Context, authorization.Info, repositories.ListPackagesMessage) ([]repositories.BuildRecord, error)
 	GetLatestBuildByAppGUID(context.Context, authorization.Info, string, string) (repositories.BuildRecord, error)
 	CreateBuild(context.Context, authorization.Info, repositories.CreateBuildMessage) (repositories.BuildRecord, error)
 }
