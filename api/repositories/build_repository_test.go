@@ -17,19 +17,29 @@ import (
 	"code.cloudfoundry.org/korifi/api/authorization"
 	apierrors "code.cloudfoundry.org/korifi/api/errors"
 	"code.cloudfoundry.org/korifi/api/repositories"
+	"code.cloudfoundry.org/korifi/api/repositories/fake"
 	korifiv1alpha1 "code.cloudfoundry.org/korifi/controllers/api/v1alpha1"
 	"code.cloudfoundry.org/korifi/tests/matchers"
 )
 
 var _ = Describe("BuildRepository", func() {
-	var buildRepo *repositories.BuildRepo
+	var (
+		buildRepo *repositories.BuildRepo
+		sorter    *fake.BuildSorter
+	)
 
 	BeforeEach(func() {
+		sorter = new(fake.BuildSorter)
+		sorter.SortStub = func(records []repositories.BuildRecord, _ string) []repositories.BuildRecord {
+			return records
+		}
+
 		buildRepo = repositories.NewBuildRepo(
 			namespaceRetriever,
 			userClientFactory.WithWrappingFunc(func(client client.WithWatch) client.WithWatch {
 				return authorization.NewSpaceFilteringClient(client, k8sClient, nsPerms)
 			}),
+			sorter,
 		)
 	})
 
@@ -527,6 +537,7 @@ var _ = Describe("BuildRepository", func() {
 			build2       *korifiv1alpha1.CFBuild
 			buildRecords []repositories.BuildRecord
 			fetchError   error
+			listMessage  repositories.ListBuildsMessage
 		)
 
 		BeforeEach(func() {
@@ -536,6 +547,7 @@ var _ = Describe("BuildRepository", func() {
 			app2GUID = uuid.NewString()
 			package1GUID = uuid.NewString()
 			package2GUID = uuid.NewString()
+			listMessage = repositories.ListBuildsMessage{}
 			cfOrg = createOrgWithCleanup(ctx, prefixedGUID("org"))
 			namespace1 = createSpaceWithCleanup(ctx, cfOrg.Name, prefixedGUID("space2"))
 			namespace2 = createSpaceWithCleanup(ctx, cfOrg.Name, prefixedGUID("space3"))
@@ -592,7 +604,7 @@ var _ = Describe("BuildRepository", func() {
 		})
 
 		It("returns an empty array (as no roles assigned)", func() {
-			buildRecords, fetchError = buildRepo.ListBuilds(ctx, authInfo)
+			buildRecords, fetchError = buildRepo.ListBuilds(ctx, authInfo, listMessage)
 			Expect(fetchError).NotTo(HaveOccurred())
 			Expect(buildRecords).To(BeEmpty())
 		})
@@ -602,7 +614,7 @@ var _ = Describe("BuildRepository", func() {
 				createRoleBinding(ctx, userName, spaceDeveloperRole.Name, namespace1.Name)
 			})
 			It("if user is a Space Developer it returns a list with one element", func() {
-				buildRecords, fetchError = buildRepo.ListBuilds(ctx, authInfo)
+				buildRecords, fetchError = buildRepo.ListBuilds(ctx, authInfo, listMessage)
 				Expect(fetchError).NotTo(HaveOccurred())
 				Expect(buildRecords).To(HaveLen(1))
 				Expect(buildRecords[0].GUID).To(Equal(build1GUID))

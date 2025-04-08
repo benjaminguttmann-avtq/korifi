@@ -184,7 +184,7 @@ func main() {
 	buildRepo := repositories.NewBuildRepo(
 		namespaceRetriever,
 		userClientFactory,
-		repositories.NewPackageSorter(),
+		repositories.NewBuildSorter(),
 	)
 	logRepo := repositories.NewLogRepo(
 		userClientFactoryUnfiltered,
