@@ -9,9 +9,12 @@ import (
 
 	"code.cloudfoundry.org/korifi/api/authorization"
 	apierrors "code.cloudfoundry.org/korifi/api/errors"
+	"code.cloudfoundry.org/korifi/api/repositories/compare"
 	korifiv1alpha1 "code.cloudfoundry.org/korifi/controllers/api/v1alpha1"
+	"code.cloudfoundry.org/korifi/tools"
 
 	"github.com/BooleanCat/go-functional/v2/it"
+	"github.com/BooleanCat/go-functional/v2/it/itx"
 	"github.com/google/uuid"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -58,11 +61,13 @@ func (r BuildRecord) Relationships() map[string]string {
 type BuildRepo struct {
 	namespaceRetriever NamespaceRetriever
 	userClientFactory  authorization.UserClientFactory
+	sorter             BuildSorter
 }
 
 func NewBuildRepo(
 	namespaceRetriever NamespaceRetriever,
 	userClientFactory authorization.UserClientFactory,
+	sorter BuildSorter,
 ) *BuildRepo {
 	return &BuildRepo{
 		namespaceRetriever: namespaceRetriever,
@@ -187,7 +192,7 @@ func (b *BuildRepo) CreateBuild(ctx context.Context, authInfo authorization.Info
 	return b.cfBuildToBuildRecord(cfBuild), nil
 }
 
-func (b *BuildRepo) ListBuilds(ctx context.Context, authInfo authorization.Info) ([]BuildRecord, error) {
+func (b *BuildRepo) ListBuilds(ctx context.Context, authInfo authorization.Info, message ListBuildsMessage) ([]BuildRecord, error) {
 	userClient, err := b.userClientFactory.BuildClient(authInfo)
 	if err != nil {
 		return []BuildRecord{}, fmt.Errorf("failed to build user client: %w", err)
@@ -199,7 +204,10 @@ func (b *BuildRepo) ListBuilds(ctx context.Context, authInfo authorization.Info)
 		return []BuildRecord{}, fmt.Errorf("failed to list builds: %w", apierrors.FromK8sError(err, BuildResourceType))
 	}
 
-	return slices.Collect(it.Map(slices.Values(buildList.Items), b.cfBuildToBuildRecord)), nil
+	filteredBuilds := itx.FromSlice(buildList.Items).Filter(message.matches)
+
+	//	return slices.Collect(it.Map(slices.Values(buildList.Items), b.cfBuildToBuildRecord)), nil
+	return b.sorter.Sort(slices.Collect(it.Map(filteredBuilds, b.cfBuildToBuildRecord)), message.OrderBy), nil
 }
 
 type CreateBuildMessage struct {
@@ -211,6 +219,70 @@ type CreateBuildMessage struct {
 	Lifecycle       Lifecycle
 	Labels          map[string]string
 	Annotations     map[string]string
+}
+
+//counterfeiter:generate -o fake -fake-name BuildSorter . BuildSorter
+type BuildSorter interface {
+	Sort(records []BuildRecord, order string) []BuildRecord
+}
+
+type buildSorter struct {
+	sorter *compare.Sorter[BuildRecord]
+}
+
+func NewBuildSorter() *buildSorter {
+	return &buildSorter{
+		sorter: compare.NewSorter(BuildComparator),
+	}
+}
+
+func (s *buildSorter) Sort(records []BuildRecord, order string) []BuildRecord {
+	return s.sorter.Sort(records, order)
+}
+
+func BuildComparator(fieldName string) func(BuildRecord, BuildRecord) int {
+	return func(d1, d2 BuildRecord) int {
+		switch fieldName {
+		case "created_at":
+			return tools.CompareTimePtr(&d1.CreatedAt, &d2.CreatedAt)
+		case "-created_at":
+			return tools.CompareTimePtr(&d2.CreatedAt, &d1.CreatedAt)
+		case "updated_at":
+			return tools.CompareTimePtr(d1.UpdatedAt, d2.UpdatedAt)
+		case "-updated_at":
+			return tools.CompareTimePtr(d2.UpdatedAt, d1.UpdatedAt)
+		}
+		return 0
+	}
+}
+
+type ListBuildsMessage struct {
+	PackageGUIDs []string
+	AppGUIDs     []string
+	States       []string
+	OrderBy      string
+}
+
+func (m *ListBuildsMessage) matches(b korifiv1alpha1.CFBuild) bool {
+	return tools.EmptyOrContains(m.PackageGUIDs, b.Spec.PackageRef.Name) &&
+		tools.EmptyOrContains(m.AppGUIDs, b.Spec.AppRef.Name) &&
+		m.matchesState(b)
+}
+
+func (m *ListBuildsMessage) matchesState(p korifiv1alpha1.CFBuild) bool {
+	//	if len(m.States) == 0 {
+	//		return true
+	//	}
+	//
+	//	if slices.Contains(m.States, BuildStateReady) && meta.IsStatusConditionTrue(p.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
+	//		return true
+	//	}
+	//
+	//	if slices.Contains(m.States, BuildStateAwaitingUpload) && !meta.IsStatusConditionTrue(p.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
+	//		return true
+	//	}
+	//
+	return false
 }
 
 func (m CreateBuildMessage) toCFBuild() korifiv1alpha1.CFBuild {

@@ -119,7 +119,13 @@ func (h *Build) list(r *http.Request) (*routing.Response, error) {
 	authInfo, _ := authorization.InfoFromContext(r.Context())
 	logger := logr.FromContextOrDiscard(r.Context()).WithName("handlers.build.list")
 
-	buildList, err := h.buildRepo.ListBuilds(r.Context(), authInfo)
+	payload := new(payloads.PackageList)
+	err := h.requestValidator.DecodeAndValidateURLValues(r, payload)
+	if err != nil {
+		return nil, apierrors.LogAndReturn(logger, err, "Unable to decode request query parameters")
+	}
+
+	buildList, err := h.buildRepo.ListBuilds(r.Context(), authInfo, payload.ToMessage())
 	if err != nil {
 		return nil, apierrors.LogAndReturn(logger, err, "Failed to fetch builds from Kubernetes")
 	}
