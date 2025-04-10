@@ -207,7 +207,8 @@ func (b *BuildRepo) ListBuilds(ctx context.Context, authInfo authorization.Info,
 	filteredBuilds := itx.FromSlice(buildList.Items).Filter(message.matches)
 
 	//	return slices.Collect(it.Map(slices.Values(buildList.Items), b.cfBuildToBuildRecord)), nil
-	return b.sorter.Sort(slices.Collect(it.Map(filteredBuilds, b.cfBuildToBuildRecord)), message.OrderBy), nil
+	//	return b.sorter.Sort(slices.Collect(it.Map(filteredBuilds, b.cfBuildToBuildRecord)), message.OrderBy), nil
+	return slices.Collect(it.Map(filteredBuilds, b.cfBuildToBuildRecord)), nil
 }
 
 type CreateBuildMessage struct {
@@ -265,23 +266,28 @@ type ListBuildsMessage struct {
 
 func (m *ListBuildsMessage) matches(b korifiv1alpha1.CFBuild) bool {
 	return tools.EmptyOrContains(m.PackageGUIDs, b.Spec.PackageRef.Name) &&
+
 		tools.EmptyOrContains(m.AppGUIDs, b.Spec.AppRef.Name) &&
 		m.matchesState(b)
 }
 
 func (m *ListBuildsMessage) matchesState(p korifiv1alpha1.CFBuild) bool {
-	//	if len(m.States) == 0 {
-	//		return true
-	//	}
-	//
-	//	if slices.Contains(m.States, BuildStateReady) && meta.IsStatusConditionTrue(p.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
-	//		return true
-	//	}
-	//
-	//	if slices.Contains(m.States, BuildStateAwaitingUpload) && !meta.IsStatusConditionTrue(p.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
-	//		return true
-	//	}
-	//
+	if len(m.States) == 0 {
+		return true
+	}
+
+	if slices.Contains(m.States, BuildStateStaged) {
+		return true
+	}
+
+	if slices.Contains(m.States, BuildStateStaging) {
+		return true
+	}
+
+	if slices.Contains(m.States, BuildStateFailed) {
+		return true
+	}
+
 	return false
 }
 
