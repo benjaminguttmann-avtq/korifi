@@ -620,6 +620,67 @@ var _ = Describe("BuildRepository", func() {
 				Expect(buildRecords[0].GUID).To(Equal(build1GUID))
 			})
 		})
+
+		When("the app_guids filter is provided", func() {
+			BeforeEach(func() {
+				createRoleBinding(ctx, userName, spaceDeveloperRole.Name, namespace1.Name)
+				listMessage = repositories.ListBuildsMessage{AppGUIDs: []string{app1GUID}}
+			})
+			It("fetches all BuildRecords for that app", func() {
+				buildRecords, fetchError = buildRepo.ListBuilds(ctx, authInfo, listMessage)
+				Expect(fetchError).NotTo(HaveOccurred())
+				Expect(buildRecords).To(HaveLen(1))
+				for _, buildRecord := range buildRecords {
+					Expect(buildRecord).To(
+						gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
+							"AppGUID": Equal(app1GUID),
+						}),
+					)
+				}
+			})
+		})
+
+		When("the package_guids filter is provided", func() {
+			BeforeEach(func() {
+				createRoleBinding(ctx, userName, spaceDeveloperRole.Name, namespace1.Name)
+				listMessage = repositories.ListBuildsMessage{PackageGUIDs: []string{package1GUID}}
+			})
+			It("fetches all BuildRecords for that package", func() {
+				buildRecords, fetchError = buildRepo.ListBuilds(ctx, authInfo, listMessage)
+				Expect(fetchError).NotTo(HaveOccurred())
+				Expect(buildRecords).To(HaveLen(1))
+				for _, buildRecord := range buildRecords {
+					Expect(buildRecord).To(
+						gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
+							"PackageGUID": Equal(package1GUID),
+						}),
+					)
+				}
+			})
+		})
+
+		When("the state filter is provided", func() {
+			When("filtering by State=STAGED", func() {
+				BeforeEach(func() {
+					createRoleBinding(ctx, userName, spaceDeveloperRole.Name, namespace1.Name)
+					listMessage = repositories.ListBuildsMessage{States: []string{"STAGED"}}
+				})
+
+				It("filters the builds", func() {
+					buildRecords, fetchError = buildRepo.ListBuilds(ctx, authInfo, listMessage)
+					Expect(fetchError).NotTo(HaveOccurred())
+					Expect(buildRecords).To(HaveLen(1))
+					for _, buildRecord := range buildRecords {
+						Expect(buildRecord).To(
+							gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
+								"State": Equal("STAGED"),
+							}),
+						)
+					}
+				})
+			})
+		})
+
 	})
 })
 
