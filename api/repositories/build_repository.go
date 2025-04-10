@@ -276,15 +276,15 @@ func (m *ListBuildsMessage) matchesState(p korifiv1alpha1.CFBuild) bool {
 		return true
 	}
 
-	if slices.Contains(m.States, BuildStateStaged) {
+	if slices.Contains(m.States, BuildStateStaged) && meta.IsStatusConditionTrue(p.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
 		return true
 	}
 
-	if slices.Contains(m.States, BuildStateStaging) {
+	if slices.Contains(m.States, BuildStateStaging) && !meta.IsStatusConditionTrue(p.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
 		return true
 	}
 
-	if slices.Contains(m.States, BuildStateFailed) {
+	if slices.Contains(m.States, BuildStateFailed) && meta.IsStatusConditionTrue(p.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
 		return true
 	}
 

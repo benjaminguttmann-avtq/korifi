@@ -663,7 +663,7 @@ var _ = Describe("BuildRepository", func() {
 			When("filtering by State=STAGED", func() {
 				BeforeEach(func() {
 					createRoleBinding(ctx, userName, spaceDeveloperRole.Name, namespace1.Name)
-					listMessage = repositories.ListBuildsMessage{States: []string{"STAGED"}}
+					listMessage = repositories.ListBuildsMessage{States: []string{"STAGING"}}
 				})
 
 				It("filters the builds", func() {
@@ -673,14 +673,13 @@ var _ = Describe("BuildRepository", func() {
 					for _, buildRecord := range buildRecords {
 						Expect(buildRecord).To(
 							gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
-								"State": Equal("STAGED"),
+								"State": Equal("STAGING"),
 							}),
 						)
 					}
 				})
 			})
 		})
-
 	})
 })
 
