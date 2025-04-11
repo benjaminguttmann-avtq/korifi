@@ -72,6 +72,7 @@ func NewBuildRepo(
 	return &BuildRepo{
 		namespaceRetriever: namespaceRetriever,
 		userClientFactory:  userClientFactory,
+		sorter:             sorter,
 	}
 }
 
@@ -207,8 +208,8 @@ func (b *BuildRepo) ListBuilds(ctx context.Context, authInfo authorization.Info,
 	filteredBuilds := itx.FromSlice(buildList.Items).Filter(message.matches)
 
 	//	return slices.Collect(it.Map(slices.Values(buildList.Items), b.cfBuildToBuildRecord)), nil
-	//	return b.sorter.Sort(slices.Collect(it.Map(filteredBuilds, b.cfBuildToBuildRecord)), message.OrderBy), nil
-	return slices.Collect(it.Map(filteredBuilds, b.cfBuildToBuildRecord)), nil
+	return b.sorter.Sort(slices.Collect(it.Map(filteredBuilds, b.cfBuildToBuildRecord)), message.OrderBy), nil
+	// return slices.Collect(it.Map(filteredBuilds, b.cfBuildToBuildRecord)), nil
 }
 
 type CreateBuildMessage struct {
