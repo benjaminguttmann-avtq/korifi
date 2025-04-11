@@ -271,20 +271,20 @@ func (m *ListBuildsMessage) matches(b korifiv1alpha1.CFBuild) bool {
 		m.matchesState(b)
 }
 
-func (m *ListBuildsMessage) matchesState(p korifiv1alpha1.CFBuild) bool {
+func (m *ListBuildsMessage) matchesState(b korifiv1alpha1.CFBuild) bool {
 	if len(m.States) == 0 {
 		return true
 	}
 
-	if slices.Contains(m.States, BuildStateStaged) && meta.IsStatusConditionTrue(p.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
+	if slices.Contains(m.States, BuildStateStaged) && meta.IsStatusConditionTrue(b.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
 		return true
 	}
 
-	if slices.Contains(m.States, BuildStateStaging) && !meta.IsStatusConditionTrue(p.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
+	if slices.Contains(m.States, BuildStateStaging) && !meta.IsStatusConditionTrue(b.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
 		return true
 	}
 
-	if slices.Contains(m.States, BuildStateFailed) && meta.IsStatusConditionTrue(p.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
+	if slices.Contains(m.States, BuildStateFailed) && !meta.IsStatusConditionTrue(b.Status.Conditions, korifiv1alpha1.StatusConditionReady) {
 		return true
 	}
 

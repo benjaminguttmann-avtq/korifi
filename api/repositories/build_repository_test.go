@@ -523,6 +523,11 @@ var _ = Describe("BuildRepository", func() {
 	})
 
 	Describe("ListBuilds", func() {
+		const (
+			StagingConditionType   = "Staging"
+			SucceededConditionType = "Succeeded"
+		)
+
 		var (
 			app1GUID     string
 			app2GUID     string
@@ -660,7 +665,7 @@ var _ = Describe("BuildRepository", func() {
 		})
 
 		When("the state filter is provided", func() {
-			When("filtering by State=STAGED", func() {
+			When("filtering by State=STAGING", func() {
 				BeforeEach(func() {
 					createRoleBinding(ctx, userName, spaceDeveloperRole.Name, namespace1.Name)
 					listMessage = repositories.ListBuildsMessage{States: []string{"STAGING"}}
@@ -674,6 +679,40 @@ var _ = Describe("BuildRepository", func() {
 						Expect(buildRecord).To(
 							gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
 								"State": Equal("STAGING"),
+							}),
+						)
+					}
+				})
+			})
+			When("filtering by State=STAGED", func() {
+				BeforeEach(func() {
+					meta.SetStatusCondition(&build1.Status.Conditions, metav1.Condition{
+						Type:    StagingConditionType,
+						Status:  metav1.ConditionFalse,
+						Reason:  "kpack",
+						Message: "kpack",
+					})
+					meta.SetStatusCondition(&build1.Status.Conditions, metav1.Condition{
+						Type:    SucceededConditionType,
+						Status:  metav1.ConditionTrue,
+						Reason:  "Unknown",
+						Message: "Unknown",
+					})
+					Expect(k8sClient.Status().Update(ctx, build1)).To(Succeed())
+
+					createRoleBinding(ctx, userName, spaceDeveloperRole.Name, namespace1.Name)
+					//	listMessage = repositories.ListBuildsMessage{States: []string{"STAGED"}}
+					listMessage = repositories.ListBuildsMessage{States: []string{"STAGED"}}
+				})
+
+				It("filters the builds", func() {
+					buildRecords, fetchError = buildRepo.ListBuilds(ctx, authInfo, listMessage)
+					Expect(fetchError).NotTo(HaveOccurred())
+					Expect(buildRecords).To(HaveLen(1))
+					for _, buildRecord := range buildRecords {
+						Expect(buildRecord).To(
+							gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
+								"State": Equal("STAGED"),
 							}),
 						)
 					}
