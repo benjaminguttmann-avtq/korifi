@@ -1104,6 +1104,22 @@ var _ = Describe("ServiceBindingRepo", func() {
 				})
 			})
 
+			When("filtered by service binding GUID", func() {
+				BeforeEach(func() {
+					requestMessage = repositories.ListServiceBindingsMessage{
+						GUIDs: []string{serviceBinding1.Name},
+					}
+				})
+
+				It("returns only the ServiceBindings that match the provided guids", func() {
+					Expect(responseServiceBindings).To(ConsistOf(
+						MatchFields(IgnoreExtras, Fields{
+							"GUID": Equal(serviceBinding1.Name),
+						}),
+					))
+				})
+			})
+
 			When("filtered by app guid", func() {
 				BeforeEach(func() {
 					requestMessage = repositories.ListServiceBindingsMessage{

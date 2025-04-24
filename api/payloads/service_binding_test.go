@@ -29,6 +29,7 @@ var _ = Describe("ServiceBindingList", func() {
 		Entry("include", "include=service_instance", payloads.ServiceBindingList{Include: "service_instance"}),
 		Entry("label_selector=foo", "label_selector=foo", payloads.ServiceBindingList{LabelSelector: "foo"}),
 		Entry("service_plan_guids=plan-guid", "service_plan_guids=plan-guid", payloads.ServiceBindingList{PlanGUIDs: "plan-guid"}),
+		Entry("guids", "guids=guid", payloads.ServiceBindingList{GUIDs: "guid"}),
 	)
 
 	DescribeTable("invalid query",
@@ -44,9 +45,11 @@ var _ = Describe("ServiceBindingList", func() {
 		var (
 			payload payloads.ServiceBindingList
 			message repositories.ListServiceBindingsMessage
+			guid    string
 		)
 
 		BeforeEach(func() {
+			guid = uuid.NewString()
 			payload = payloads.ServiceBindingList{
 				Type:                 korifiv1alpha1.CFServiceBindingTypeApp,
 				AppGUIDs:             "app1,app2",
@@ -54,6 +57,7 @@ var _ = Describe("ServiceBindingList", func() {
 				Include:              "include",
 				LabelSelector:        "foo=bar",
 				PlanGUIDs:            "p1,p2",
+				GUIDs:                guid,
 			}
 		})
 
@@ -68,6 +72,7 @@ var _ = Describe("ServiceBindingList", func() {
 				ServiceInstanceGUIDs: []string{"s1", "s2"},
 				LabelSelector:        "foo=bar",
 				PlanGUIDs:            []string{"p1", "p2"},
+				GUIDs:                []string{guid},
 			}))
 		})
 	})

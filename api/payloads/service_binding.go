@@ -77,6 +77,7 @@ type ServiceBindingList struct {
 	Include              string
 	LabelSelector        string
 	PlanGUIDs            string
+	GUIDs                string
 }
 
 func (l ServiceBindingList) Validate() error {
@@ -93,11 +94,12 @@ func (l *ServiceBindingList) ToMessage() repositories.ListServiceBindingsMessage
 		LabelSelector:        l.LabelSelector,
 		PlanGUIDs:            parse.ArrayParam(l.PlanGUIDs),
 		Type:                 l.Type,
+		GUIDs:                parse.ArrayParam(l.GUIDs),
 	}
 }
 
 func (l *ServiceBindingList) SupportedKeys() []string {
-	return []string{"app_guids", "service_instance_guids", "include", "type", "per_page", "page", "label_selector", "service_plan_guids"}
+	return []string{"app_guids", "service_instance_guids", "include", "type", "per_page", "page", "label_selector", "service_plan_guids", "guids"}
 }
 
 func (l *ServiceBindingList) DecodeFromURLValues(values url.Values) error {
@@ -107,6 +109,7 @@ func (l *ServiceBindingList) DecodeFromURLValues(values url.Values) error {
 	l.Include = values.Get("include")
 	l.LabelSelector = values.Get("label_selector")
 	l.PlanGUIDs = values.Get("service_plan_guids")
+	l.GUIDs = values.Get("guids")
 	return nil
 }
 

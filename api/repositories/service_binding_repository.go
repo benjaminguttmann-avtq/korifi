@@ -108,11 +108,13 @@ type ListServiceBindingsMessage struct {
 	LabelSelector        string
 	Type                 string
 	PlanGUIDs            []string
+	GUIDs                []string
 }
 
 func (m *ListServiceBindingsMessage) matches(serviceBinding korifiv1alpha1.CFServiceBinding) bool {
 	return tools.EmptyOrContains(m.ServiceInstanceGUIDs, serviceBinding.Spec.Service.Name) &&
 		tools.EmptyOrContains(m.AppGUIDs, serviceBinding.Spec.AppRef.Name) &&
+		tools.EmptyOrContains(m.GUIDs, serviceBinding.Name) &&
 		tools.EmptyOrContains(m.PlanGUIDs, serviceBinding.Labels[korifiv1alpha1.PlanGUIDLabelKey]) &&
 		tools.ZeroOrEquals(m.Type, serviceBinding.Spec.Type)
 }
