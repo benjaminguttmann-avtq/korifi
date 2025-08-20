@@ -185,7 +185,7 @@ func (h *Space) getIsolationSegments(r *http.Request) (*routing.Response, error)
 		return nil, apierrors.LogAndReturn(logger, err, "Failed to fetch isolation segments from Kubernetes")
 	}
 
-	return routing.NewResponse(http.StatusOK).WithBody(presenter.ForList(presenter.ForIsolationSegment, isolationSegments, h.apiBaseURL)), nil
+	return routing.NewResponse(http.StatusOK).WithBody(presenter.ForList(presenter.ForIsolationSegment, isolationSegments, h.apiBaseURL, *r.URL)), nil
 }
 
 func (h *Space) lookupSpaceIsolationSegments(ctx context.Context, authInfo authorization.Info) (repositories.ListResult[repositories.IsolationSegmentRecord], error) {
