@@ -178,6 +178,9 @@ func main() {
 		nsPermissions,
 		conditions.NewConditionAwaiter[*korifiv1alpha1.CFOrg, korifiv1alpha1.CFOrgList](conditionTimeout),
 	)
+	orgQuotaRepo := repositories.NewOrgQuotaRepo(
+		rootNSKlient,
+	)
 	spaceRepo := repositories.NewSpaceRepo(
 		spaceScopedKlient,
 		orgRepo,
@@ -500,6 +503,10 @@ func main() {
 			securityGroupRepo,
 			spaceRepo,
 			requestValidator,
+		),
+		handlers.NewOrgQuota(
+			*serverURL,
+			orgQuotaRepo,
 		),
 	}
 
