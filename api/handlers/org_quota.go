@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	OrgQuotaPath = "/v3/organization_quotas/${guid}"
+	OrgQuotasPath = "/v3/organization_quotas"
+	OrgQuotaPath  = "/v3/organization_quotas/{guid}"
 )
 
 type CFOrgQuotaRepository interface{}
@@ -30,8 +31,13 @@ func (h *OrgQuota) get(r *http.Request) (*routing.Response, error) {
 	return routing.NewResponse(http.StatusOK).WithBody(presenter.ForOrgQuota(h.apiBaseURL)), nil
 }
 
+func (h *OrgQuota) list(r *http.Request) (*routing.Response, error) {
+	return routing.NewResponse(http.StatusOK).WithBody(presenter.ForOrgQuota(h.apiBaseURL)), nil
+}
+
 func (h *OrgQuota) AuthenticatedRoutes() []routing.Route {
 	return []routing.Route{
+		{Method: "GET", Pattern: OrgQuotasPath, Handler: h.list},
 		{Method: "GET", Pattern: OrgQuotaPath, Handler: h.get},
 	}
 }

@@ -3,7 +3,6 @@ package smoke_test
 import (
 	"code.cloudfoundry.org/korifi/tests/helpers"
 
-	"github.com/BooleanCat/go-functional/v2/it"
 	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -20,7 +19,6 @@ var _ = Describe("OrgQuotas", func() {
 		It("returns OK", func() {
 			session := helpers.Cf("org-quota", orgQuotaName)
 			Expect(session).To(Exit(0))
-
 		})
 	})
 })

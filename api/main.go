@@ -181,6 +181,9 @@ func main() {
 	orgQuotaRepo := repositories.NewOrgQuotaRepo(
 		rootNSKlient,
 	)
+	isolationSegmentRepo := repositories.NewIsolationSegmentRepo(
+		rootNSKlient,
+	)
 	spaceRepo := repositories.NewSpaceRepo(
 		spaceScopedKlient,
 		orgRepo,
@@ -507,6 +510,10 @@ func main() {
 		handlers.NewOrgQuota(
 			*serverURL,
 			orgQuotaRepo,
+		),
+		handlers.NewIsolationSegment(
+			*serverURL,
+			isolationSegmentRepo,
 		),
 	}
 
